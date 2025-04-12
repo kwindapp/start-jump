@@ -1,3 +1,9 @@
+
+
+<img width="833" alt="Screenshot 2025-04-12 at 19 13 45" src="https://github.com/user-attachments/assets/b3ce92f6-f451-4f28-bc47-51dda93d49d4" />
+
+
+
 Main Topic: Jump Recording with IMU on a Kiteboard Using LoRaWAN & E-Paper Display
 Objective:
 To record and display jump data (height, airtime, and impact acceleration) on an E-paper display attached to a kiteboard. The data, along with GPS coordinates, will also be sent via LoRaWAN for remote tracking and retrieval.
