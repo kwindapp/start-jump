@@ -1,4 +1,5 @@
 #include <M5Core2.h>  // Use M5Core2 directly without M5Unified
+#include <math.h>
 
 // ====== TUNABLE PARAMETERS ======
 float takeoffThreshold = 1.2;
@@ -6,7 +7,7 @@ float landingThresholdLow = 0.9;
 float landingThresholdHigh = 1.3;
 float gravityFactor = 1.0;
 float accelSmoothing = 0.2;
-float maxJumpHeight = 40.0;          // In meters
+float maxJumpHeight = 40.0; // increased for higher jumps (in meters)
 float minFlightTime = 0.1;
 int jumpStartDebounce = 1000;
 int minAccelDuration = 50;
@@ -25,6 +26,9 @@ unsigned long accelOverThresholdStart = 0;
 #define MAX_JUMPS 5
 float jumpHeights[MAX_JUMPS] = {0};
 float airTimes[MAX_JUMPS] = {0};
+
+unsigned long lastPrintTime = 0;
+const unsigned long printInterval = 1000;
 
 void drawButtons() {
   M5.Lcd.fillRect(0, 200, 320, 40, DARKGREY);
@@ -114,7 +118,6 @@ void resetJumps() {
     jumpHeights[i] = 0;
     airTimes[i] = 0;
   }
-
   takeoffTime = landingTime = currentTime = lastJumpTime = 0;
   inAir = false;
 
@@ -128,19 +131,14 @@ void resetJumps() {
 }
 
 float calculateJumpHeight(float flightTime) {
-  float height = 0.5 * (9.81 * gravityFactor) * pow(flightTime / 2.0, 2);
-  return height;
+  float h = 0.5 * 9.81 * pow(flightTime / 2.0, 2);
+  return min(h, maxJumpHeight);
 }
-
-// Serial print limiter
-unsigned long lastPrintTime = 0;
-const unsigned long printInterval = 1000;
 
 void setup() {
   M5.begin();
   M5.IMU.Init();
   Serial.begin(115200);
-
   M5.Lcd.setRotation(1);
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(2);
@@ -198,18 +196,17 @@ void loop() {
     return;
   }
 
-  // Read IMU data
   float ax, ay, az;
   M5.IMU.getAccelData(&ax, &ay, &az);
   float totalAccel = sqrt(ax * ax + ay * ay + az * az);
-  // Optionally: float totalAccel = abs(az);  // for Z-only jump detection
-
   unsigned long now = millis();
 
   if (now - lastPrintTime >= printInterval) {
     Serial.printf("Accel: %.2f, inAir: %d\n", totalAccel, inAir);
     lastPrintTime = now;
   }
+
+  static unsigned long landingAccelStart = 0;
 
   if (!inAir && totalAccel > takeoffThreshold) {
     if (accelOverThresholdStart == 0) accelOverThresholdStart = now;
@@ -228,12 +225,10 @@ void loop() {
     M5.Lcd.fillRect(0, 30, 320, 30, BLACK);
     M5.Lcd.setCursor(10, 30);
     M5.Lcd.printf("Time: %.2fs", currentTime / 1000.0);
-  }
 
-  static unsigned long landingAccelStart = 0;
-  if (inAir) {
     if (totalAccel > landingThresholdLow && totalAccel < landingThresholdHigh) {
       if (landingAccelStart == 0) landingAccelStart = now;
+
       if ((now - landingAccelStart) >= landingHoldDuration) {
         landingTime = now;
         float flightTime = (landingTime - takeoffTime) / 1000.0;
@@ -241,12 +236,7 @@ void loop() {
         if (flightTime > minFlightTime) {
           inAir = false;
           landingAccelStart = 0;
-
           float heightCm = calculateJumpHeight(flightTime) * 100;
-
-          // Clamp to max height limit
-          if (heightCm > maxJumpHeight * 100) heightCm = maxJumpHeight * 100;
-
           Serial.printf("Jump landed! Flight time: %.2fs, Height: %.2f cm\n", flightTime, heightCm);
 
           for (int i = 0; i < MAX_JUMPS - 1; i++) {
@@ -256,7 +246,6 @@ void loop() {
 
           jumpHeights[MAX_JUMPS - 1] = heightCm;
           airTimes[MAX_JUMPS - 1] = flightTime;
-
           drawJumpGraph();
           delay(200);
         }
