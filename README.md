@@ -67,6 +67,7 @@ Location (GPS coordinates) – The current position of the kiteboard.
 The display updates dynamically after each jump, providing live performance data while the user is on the water.
 
 example lilygo e paper kwind lorawan
+https://lilygo.cc/products/t5-e-paper-s3-pro?srsltid=AfmBOorc7LqXWoUC_o1wGtLzu9pwrRpQNAIeEYyUUlhsNAWFjZNvDk14
 
 ![IMG_0545](https://github.com/user-attachments/assets/4ae474a5-c8a6-448d-b466-69d2ad91064e)
 ![IMG_0557](https://github.com/user-attachments/assets/77837a5c-b315-45c8-9457-86fa07aa6970)
