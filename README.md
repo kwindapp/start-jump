@@ -36,7 +36,7 @@ Impact acceleration: When landing, showing the impact force on the board.
 
 Jump height: Calculated based on the airtime and vertical acceleration.
 
-GPS for Real-Time Location:
+GPS for Real-Time Location:   ALSO FOR FIND MY KITEBOARD !!!!!  😁😁   
 
 The GPS module continuously records the latitude and longitude of the kiteboard.
 
