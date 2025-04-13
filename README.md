@@ -22,7 +22,9 @@ E-paper Display – For displaying real-time data on the kiteboard in outdoor co
 Battery – For powering the system.
 
 How It Works:
-IMU Data for Jump Recording: CODE WITH SMART AI ......PARAMETER MENU FINE TUNING  😉 !!! FIRMWARE UPDATES OVER KWIND WEBFLASHER HOMEPAGE
+IMU Data for Jump Recording: FLEXIBLE HARDWARE IMU CAN BE ATTACHED TO THE ESP32 BOARDS IMU of our choise
+
+CODE WITH SMART AI ......PARAMETER MENU FINE TUNING  😉 !!! FIRMWARE UPDATES OVER KWIND WEBFLASHER HOMEPAGE
 
 The IMU detects changes in acceleration and orientation when the kiteboard is in motion.
 
