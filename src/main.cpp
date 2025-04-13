@@ -2,15 +2,15 @@
 
 // ====== TUNABLE PARAMETERS ======
 float takeoffThreshold = 1.2;
-float landingThresholdLow = 0.9;
-float landingThresholdHigh = 1.1;
+float landingThresholdLow = 1.1;
+float landingThresholdHigh = 1.5;
 float gravityFactor = 1.0;
 float accelSmoothing = 0.2;
 float maxJumpHeight = 0.1;
 float minFlightTime = 0.1;
-int jumpStartDebounce = 1000;       // NEW: debounce time in ms
-int minAccelDuration = 50;          // NEW: min accel threshold duration in ms
-int landingHoldDuration = 50;       // NEW: duration to confirm landing (ms)
+int jumpStartDebounce = 1000;
+int minAccelDuration = 50;
+int landingHoldDuration = 50;
 // ================================
 
 int menuIndex = 0;
@@ -22,12 +22,10 @@ unsigned long currentTime = 0;
 unsigned long lastJumpTime = 0;
 unsigned long accelOverThresholdStart = 0;
 
-// Graph Data
 #define MAX_JUMPS 5
 float jumpHeights[MAX_JUMPS] = {0};
 float airTimes[MAX_JUMPS] = {0};
 
-// Menu Interface
 void drawButtons() {
   M5.Lcd.fillRect(0, 200, 320, 40, DARKGREY);
   M5.Lcd.setTextSize(2);
@@ -46,7 +44,6 @@ void drawButtons() {
   M5.Lcd.setCursor(270, 210); M5.Lcd.print("-");
 }
 
-// Draw Menu
 void drawMenu() {
   M5.Lcd.fillScreen(BLACK);
   M5.Lcd.setTextSize(2);
@@ -75,15 +72,11 @@ void drawMenu() {
   drawButtons();
 }
 
-// Graph Update Function with height in cm
 void drawJumpGraph() {
   M5.Lcd.fillRect(0, 50, 320, 200, BLACK);
   int startX = 20, baseY = 200, barWidth = 40, maxHeight = 120;
-
-  float maxJump = 0.1; // maximum height to scale the bars
-  for (int i = 0; i < MAX_JUMPS; i++) {
-    if (jumpHeights[i] > maxJump) maxJump = jumpHeights[i];
-  }
+  float maxJump = 0.1;
+  for (int i = 0; i < MAX_JUMPS; i++) if (jumpHeights[i] > maxJump) maxJump = jumpHeights[i];
 
   M5.Lcd.setTextSize(2);
   M5.Lcd.setTextColor(YELLOW, BLACK);
@@ -92,25 +85,23 @@ void drawJumpGraph() {
     int x = startX + i * (barWidth + 20);
     int h = (int)(min(jumpHeights[i] / maxJump, 1.0f) * maxHeight);
     int y = baseY - h;
+    M5.Lcd.setTextSize(1);
+    M5.Lcd.fillRect(x, y, barWidth, h, (inAir ? GREEN : TFT_CYAN));
+    M5.Lcd.setTextSize(2);
 
-    M5.Lcd.fillRect(x, y, barWidth, h, GREEN);
+    char timeBuffer[8];
+    sprintf(timeBuffer, "%.2fs", airTimes[i]);
+    int timeTextWidth = M5.Lcd.textWidth(timeBuffer);
+    M5.Lcd.setCursor(x + (barWidth - timeTextWidth) / 2, y - 20);
+    M5.Lcd.print(timeBuffer);
 
-    // Display height in centimeters below the bars
-    char hbuf[6];
-    sprintf(hbuf, "%.0f cm", jumpHeights[i]);
-    int htw = M5.Lcd.textWidth(hbuf);
-    M5.Lcd.setCursor(x + (barWidth - htw) / 2, baseY + 5); // Position the height text below the bars
-    M5.Lcd.printf("%s", hbuf);
-
-    // Display flight time in seconds above the bars
-    char tbuf[6];
-    sprintf(tbuf, "%.2fs", airTimes[i]);
-    int ttw = M5.Lcd.textWidth(tbuf);
-    M5.Lcd.setCursor(x + (barWidth - ttw) / 2, baseY - h - 20);
-    M5.Lcd.printf("%s", tbuf);
+    char heightBuffer[8];
+    sprintf(heightBuffer, "%.0f", jumpHeights[i]);
+    int heightTextWidth = M5.Lcd.textWidth(heightBuffer);
+    M5.Lcd.setCursor(x + (barWidth - heightTextWidth) / 2, baseY + 5);
+    M5.Lcd.print(heightBuffer);
   }
 
-  // Reset Button at the bottom
   M5.Lcd.fillRect(100, 260, 120, 50, RED);
   M5.Lcd.setTextColor(WHITE);
   M5.Lcd.setTextSize(3);
@@ -118,7 +109,6 @@ void drawJumpGraph() {
   M5.Lcd.print("RESET");
 }
 
-// Function to reset the jump data, graph, and timer
 void resetJumps() {
   for (int i = 0; i < MAX_JUMPS; i++) {
     jumpHeights[i] = 0;
@@ -137,9 +127,8 @@ void resetJumps() {
   drawJumpGraph();
 }
 
-// Function to calculate jump height based on flight time
 float calculateJumpHeight(float flightTime) {
-  return 0.5 * 9.81 * pow(flightTime / 2.0, 2);  // Height formula
+  return 0.5 * 9.81 * pow(flightTime / 2.0, 2);
 }
 
 void setup() {
@@ -209,7 +198,8 @@ void loop() {
   float totalAccel = sqrt(ax * ax + ay * ay + az * az);
   unsigned long now = millis();
 
-  // Detect sustained takeoff
+  Serial.printf("Accel: %.2f, inAir: %d\n", totalAccel, inAir);
+
   if (!inAir && totalAccel > takeoffThreshold) {
     if (accelOverThresholdStart == 0) accelOverThresholdStart = now;
     if (now - accelOverThresholdStart > minAccelDuration && (now - lastJumpTime > jumpStartDebounce)) {
@@ -228,37 +218,44 @@ void loop() {
     M5.Lcd.printf("Time: %.2fs", currentTime / 1000.0);
   }
 
-  // Check for landing
+  // ✅ Fixed landing detection with timer
   static unsigned long landingAccelStart = 0;
 
-  if (inAir && totalAccel > landingThresholdLow && totalAccel < landingThresholdHigh) {
-    landingTime = now;
-    float flightTime = (landingTime - takeoffTime) / 1000.0;  // Flight time in seconds
+  if (inAir) {
+    if (totalAccel > landingThresholdLow && totalAccel < landingThresholdHigh) {
+      if (landingAccelStart == 0) landingAccelStart = now;
 
-    if (flightTime > minFlightTime) {
-        inAir = false;
+      Serial.printf("Landing accel sustained: %lu ms\n", now - landingAccelStart);
 
-        // Jump height calculation (in meters)
-        float heightMeters = 0.5 * 9.81 * pow(flightTime / 2.0, 2); // Half the flight time for ascent
-        float heightCm = heightMeters * 100; // Convert to centimeters
+      if ((now - landingAccelStart) >= landingHoldDuration) {
+        landingTime = now;
+        float flightTime = (landingTime - takeoffTime) / 1000.0;
 
-        // Save the jump height in the array (keep in cm)
-        for (int i = 0; i < MAX_JUMPS - 1; i++) {
+        if (flightTime > minFlightTime) {
+          inAir = false;
+          landingAccelStart = 0;
+
+          float heightCm = 0.5 * 9.81 * pow(flightTime / 2.0, 2) * 100;
+
+          for (int i = 0; i < MAX_JUMPS - 1; i++) {
             jumpHeights[i] = jumpHeights[i + 1];
             airTimes[i] = airTimes[i + 1];
+          }
+
+          jumpHeights[MAX_JUMPS - 1] = heightCm;
+          airTimes[MAX_JUMPS - 1] = flightTime;
+
+          drawJumpGraph();
+          delay(200);
         }
-
-        jumpHeights[MAX_JUMPS - 1] = heightCm; // Store the height in cm
-        airTimes[MAX_JUMPS - 1] = flightTime;
-
-        drawJumpGraph();
-        delay(200);
+      }
+    } else {
+      landingAccelStart = 0;
     }
   }
 
-  // Handle RESET button press
-  if (p.x > 100 && p.x < 220 && p.y > 260 && p.y < 310) {
-    resetJumps(); // Reset the jumps when button is pressed
-    delay(500);   // Prevent multiple presses from being detected
+  if (M5.Touch.ispressed()) {
+    resetJumps();
+    delay(500);
   }
 }
