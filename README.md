@@ -22,7 +22,7 @@ E-paper Display – For displaying real-time data on the kiteboard in outdoor co
 Battery – For powering the system.
 
 How It Works:
-IMU Data for Jump Recording: CODE WITH SMART AI ......PARAMETERS FINE TUNING !!!
+IMU Data for Jump Recording: CODE WITH SMART AI ......PARAMETERS MENU FINE TUNING  😉 !!!
 
 The IMU detects changes in acceleration and orientation when the kiteboard is in motion.
 
