@@ -2,17 +2,18 @@
 #include <math.h>
 
 // ====== TUNABLE PARAMETERS ======
-float takeoffThreshold = 1.2;
-float landingThresholdLow = 0.9;
-float landingThresholdHigh = 1.3;
-float gravityFactor = 1.0;
-float accelSmoothing = 0.2;
-float maxJumpHeight = 40.0; // increased for higher jumps (in meters)
-float minFlightTime = 0.1;
-int jumpStartDebounce = 1000;
-int minAccelDuration = 50;
-int landingHoldDuration = 50;
+float takeoffThreshold = 1.2;         // Acceleration (G) above this triggers jump start detection
+float landingThresholdLow = 0.9;      // Lower bound (G) for detecting landing (start of stable G-force)
+float landingThresholdHigh = 1.3;     // Upper bound (G) for detecting landing
+float gravityFactor = 1.0;            // Multiplier for gravity in height calculation (not currently used)
+float accelSmoothing = 0.2;           // Low-pass filter for acceleration data; 0 = no smoothing, 1 = very slow
+float maxJumpHeight = 40.0;           // Cap on max height (in meters) to prevent unrealistic values
+float minFlightTime = 0.1;            // Minimum duration (seconds) a jump must last to be valid
+int jumpStartDebounce = 1000;         // Minimum time (ms) between consecutive jumps to avoid double detection
+int minAccelDuration = 50;            // Acceleration above takeoff threshold must last at least this long (ms)
+int landingHoldDuration = 50;         // Duration (ms) that acceleration must stay within landing range to confirm landing
 // ================================
+
 
 int menuIndex = 0;
 bool inMenu = true;
