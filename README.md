@@ -17,7 +17,7 @@ GPS Module – To track the real-time location of the kiteboard.
 
 LoRaWAN Module – To transmit data over long distances (e.g., via a LoRa gateway to a cloud server).
 
-E-paper Display – For displaying real-time data on the kiteboard in outdoor conditions.NO REFLECTIONS !!!
+E-paper Display – For displaying real-time data on the kiteboard in outdoor conditions.....NO REFLECTIONS SUNLIGHT!!!
 
 Battery – For powering the system.
 
