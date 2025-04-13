@@ -48,7 +48,7 @@ Once a jump is detected and the session is complete, the jump data (height, airt
 
 This data can be retrieved later for analysis or real-time monitoring.
 
-E-paper Display:
+E-paper Display:    LOW POWER CONSUME NO REFLECTIONS SUNLIGHT !!!😎
 
 The E-paper display shows:
 
