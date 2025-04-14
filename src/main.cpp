@@ -1,18 +1,19 @@
-#include <M5Core2.h>  // Use M5Core2 directly without M5Unified
+#include <M5Core2.h>
 #include <math.h>
 
-// ====== TUNABLE PARAMETERS ======
-float takeoffThreshold = 1.2;         // Acceleration (G) above this triggers jump start detection
-float landingThresholdLow = 0.9;      // Lower bound (G) for detecting landing (start of stable G-force)
-float landingThresholdHigh = 1.3;     // Upper bound (G) for detecting landing
-float gravityFactor = 1.0;            // Multiplier for gravity in height calculation (not currently used)
-float accelSmoothing = 0.2;           // Low-pass filter for acceleration data; 0 = no smoothing, 1 = very slow
-float maxJumpHeight = 40.0;           // Cap on max height (in meters) to prevent unrealistic values
-float minFlightTime = 0.1;            // Minimum duration (seconds) a jump must last to be valid
-int jumpStartDebounce = 1000;         // Minimum time (ms) between consecutive jumps to avoid double detection
-int minAccelDuration = 50;            // Acceleration above takeoff threshold must last at least this long (ms)
-int landingHoldDuration = 50;         // Duration (ms) that acceleration must stay within landing range to confirm landing
-// ================================
+float takeoffThreshold = 1.2;            // Acceleration threshold to detect takeoff
+float landingThresholdLow = 0.9;         // Lower bound of acceleration for landing
+float landingThresholdHigh = 1.3;        // Upper bound of acceleration for landing
+float gravityFactor = 1.0;               // Adjust gravity for height calculation
+float accelSmoothing = 0.2;              // Amount of smoothing on acceleration data
+float maxJumpHeight = 40.0;              // Maximum height for jump detection (in cm)
+float minFlightTime = 0.1;               // Minimum valid jump flight time
+int jumpStartDebounce = 1000;            // Debounce time to avoid multiple jump detections
+int minAccelDuration = 50;               // Minimum time above threshold before jump is valid
+int landingHoldDuration = 50;            // Duration to hold the landing threshold for validation
+float airtimeTimeout = 5000;             // Maximum time before jump is considered over
+float impactThreshold = 3.0;             // G-force threshold for detecting landing impact
+int minLandingDetectTime = 200;          // Minimum time after takeoff before detecting landing
 
 
 int menuIndex = 0;
@@ -58,19 +59,23 @@ void drawMenu() {
   const char* labels[] = {
     "TakeoffThresh", "Land Thresh Low", "Land Thresh High",
     "Gravity Factor", "Accel Smoothing", "Max Jump Height", "Min Flight Time",
-    "Jump Debounce", "Accel Hold(ms)", "Landing Hold(ms)", "Exit"
-  };
-  float* values[] = {
-    &takeoffThreshold, &landingThresholdLow, &landingThresholdHigh,
-    &gravityFactor, &accelSmoothing, &maxJumpHeight, &minFlightTime
+    "Jump Debounce", "Accel Hold(ms)", "Landing Hold(ms)", "Max Airtime(ms)",
+    "Impact G", "LandDelay(ms)", "Exit"
   };
 
-  for (int i = 0; i < 11; i++) {
+  float* values[] = {
+    &takeoffThreshold, &landingThresholdLow, &landingThresholdHigh,
+    &gravityFactor, &accelSmoothing, &maxJumpHeight, &minFlightTime, &impactThreshold
+  };
+
+  for (int i = 0; i < 14; i++) {
     if (i == menuIndex) M5.Lcd.print("> "); else M5.Lcd.print("  ");
-    if (i < 7) M5.Lcd.printf("%s: %.2f\n", labels[i], *values[i]);
-    else if (i == 7) M5.Lcd.printf("%s: %d\n", labels[i], jumpStartDebounce);
-    else if (i == 8) M5.Lcd.printf("%s: %d\n", labels[i], minAccelDuration);
-    else if (i == 9) M5.Lcd.printf("%s: %d\n", labels[i], landingHoldDuration);
+    if (i < 8) M5.Lcd.printf("%s: %.2f\n", labels[i], *values[i]);
+    else if (i == 8) M5.Lcd.printf("%s: %d\n", labels[i], jumpStartDebounce);
+    else if (i == 9) M5.Lcd.printf("%s: %d\n", labels[i], minAccelDuration);
+    else if (i == 10) M5.Lcd.printf("%s: %d\n", labels[i], landingHoldDuration);
+    else if (i == 11) M5.Lcd.printf("%s: %d\n", labels[i], (int)airtimeTimeout);
+    else if (i == 12) M5.Lcd.printf("%s: %d\n", labels[i], minLandingDetectTime);
     else M5.Lcd.println("Exit");
   }
 
@@ -155,8 +160,8 @@ void loop() {
 
   if (inMenu) {
     if (p.y > 200 && p.y < 240) {
-      if (p.x > 5 && p.x < 75) { menuIndex = (menuIndex - 1 + 11) % 11; drawMenu(); delay(200); }
-      else if (p.x > 85 && p.x < 155) { menuIndex = (menuIndex + 1) % 11; drawMenu(); delay(200); }
+      if (p.x > 5 && p.x < 75) { menuIndex = (menuIndex - 1 + 14) % 14; drawMenu(); delay(200); }
+      else if (p.x > 85 && p.x < 155) { menuIndex = (menuIndex + 1) % 14; drawMenu(); delay(200); }
       else if (p.x > 165 && p.x < 235) {
         if (menuIndex == 0) takeoffThreshold = min(takeoffThreshold + 0.1, 2.0);
         else if (menuIndex == 1) landingThresholdLow = min(landingThresholdLow + 0.1, 1.5);
@@ -165,9 +170,12 @@ void loop() {
         else if (menuIndex == 4) accelSmoothing = min(accelSmoothing + 0.05, 1.0);
         else if (menuIndex == 5) maxJumpHeight = min(maxJumpHeight + 0.05, 2.0);
         else if (menuIndex == 6) minFlightTime = min(minFlightTime + 0.1, 1.0);
-        else if (menuIndex == 7) jumpStartDebounce += 50;
-        else if (menuIndex == 8) minAccelDuration += 10;
-        else if (menuIndex == 9) landingHoldDuration += 10;
+        else if (menuIndex == 7) impactThreshold = min(impactThreshold + 0.1, 5.0);
+        else if (menuIndex == 8) jumpStartDebounce += 50;
+        else if (menuIndex == 9) minAccelDuration += 10;
+        else if (menuIndex == 10) landingHoldDuration += 10;
+        else if (menuIndex == 11) airtimeTimeout += 500;
+        else if (menuIndex == 12) minLandingDetectTime += 10;
         drawMenu(); delay(200);
       }
       else if (p.x > 245 && p.x < 315) {
@@ -178,14 +186,17 @@ void loop() {
         else if (menuIndex == 4) accelSmoothing = max(accelSmoothing - 0.05, 0.0);
         else if (menuIndex == 5) maxJumpHeight = max(maxJumpHeight - 0.05, 0.1);
         else if (menuIndex == 6) minFlightTime = max(minFlightTime - 0.1, 0.0);
-        else if (menuIndex == 7) jumpStartDebounce = max(jumpStartDebounce - 50, 100);
-        else if (menuIndex == 8) minAccelDuration = max(minAccelDuration - 10, 10);
-        else if (menuIndex == 9) landingHoldDuration = max(landingHoldDuration - 10, 10);
+        else if (menuIndex == 7) impactThreshold = max(impactThreshold - 0.1, 0.5);
+        else if (menuIndex == 8) jumpStartDebounce = max(jumpStartDebounce - 50, 100);
+        else if (menuIndex == 9) minAccelDuration = max(minAccelDuration - 10, 10);
+        else if (menuIndex == 10) landingHoldDuration = max(landingHoldDuration - 10, 10);
+        else if (menuIndex == 11) airtimeTimeout = max(airtimeTimeout - 500.0f, 1000.0f);
+        else if (menuIndex == 12) minLandingDetectTime = max(minLandingDetectTime - 10, 0);
         drawMenu(); delay(200);
       }
     }
 
-    if (menuIndex == 10) {
+    if (menuIndex == 13) {
       inMenu = false;
       M5.Lcd.fillScreen(BLACK);
       M5.Lcd.setTextSize(2);
@@ -227,24 +238,60 @@ void loop() {
     M5.Lcd.setCursor(10, 30);
     M5.Lcd.printf("Time: %.2fs", currentTime / 1000.0);
 
-    if (totalAccel > landingThresholdLow && totalAccel < landingThresholdHigh) {
+    if (totalAccel > impactThreshold) {
+      landingTime = now;
+      float flightTime = (landingTime - takeoffTime) / 1000.0;
+      if (flightTime > minFlightTime) {
+        inAir = false;
+        float heightCm = calculateJumpHeight(flightTime) * 100;
+        Serial.printf("Impact detected! G-force: %.2fG\n", totalAccel);
+        for (int i = 0; i < MAX_JUMPS - 1; i++) {
+          jumpHeights[i] = jumpHeights[i + 1];
+          airTimes[i] = airTimes[i + 1];
+        }
+        jumpHeights[MAX_JUMPS - 1] = heightCm;
+        airTimes[MAX_JUMPS - 1] = flightTime;
+        drawJumpGraph();
+        delay(200);
+        return;
+      }
+    }
+
+    if (currentTime > airtimeTimeout) {
+      landingTime = now;
+      float flightTime = (landingTime - takeoffTime) / 1000.0;
+      if (flightTime > minFlightTime) {
+        inAir = false;
+        float heightCm = calculateJumpHeight(flightTime) * 100;
+        Serial.printf("Airtime timeout! Jump landed after %.2fs, Height: %.2f cm\n", flightTime, heightCm);
+        for (int i = 0; i < MAX_JUMPS - 1; i++) {
+          jumpHeights[i] = jumpHeights[i + 1];
+          airTimes[i] = airTimes[i + 1];
+        }
+        jumpHeights[MAX_JUMPS - 1] = heightCm;
+        airTimes[MAX_JUMPS - 1] = flightTime;
+        drawJumpGraph();
+        delay(200);
+      }
+    }
+
+    if ((now - takeoffTime) > minLandingDetectTime &&
+        totalAccel > landingThresholdLow &&
+        totalAccel < landingThresholdHigh) {
       if (landingAccelStart == 0) landingAccelStart = now;
 
       if ((now - landingAccelStart) >= landingHoldDuration) {
         landingTime = now;
         float flightTime = (landingTime - takeoffTime) / 1000.0;
-
         if (flightTime > minFlightTime) {
           inAir = false;
-          landingAccelStart = 0;
           float heightCm = calculateJumpHeight(flightTime) * 100;
-          Serial.printf("Jump landed! Flight time: %.2fs, Height: %.2f cm\n", flightTime, heightCm);
-
+          Serial.printf("Jump landed! Time: %.2fs, Height: %.2f cm\n", flightTime, heightCm);
+          Serial.printf("Landing after %d ms delay allowed\n", minLandingDetectTime);
           for (int i = 0; i < MAX_JUMPS - 1; i++) {
             jumpHeights[i] = jumpHeights[i + 1];
             airTimes[i] = airTimes[i + 1];
           }
-
           jumpHeights[MAX_JUMPS - 1] = heightCm;
           airTimes[MAX_JUMPS - 1] = flightTime;
           drawJumpGraph();
@@ -254,10 +301,14 @@ void loop() {
     } else {
       landingAccelStart = 0;
     }
+   
   }
-
-  if (M5.Touch.ispressed()) {
-    resetJumps();
-    delay(500);
-  }
+    // Handle the RESET button press in jump graph
+    if (M5.Touch.ispressed()) {
+      TouchPoint_t touch = M5.Touch.getPressPoint();
+      if (touch.x > 100 && touch.x < 220 && touch.y > 260 && touch.y < 310) {
+        resetJumps();  // Reset jumps and menu
+        delay(500);  // Debounce delay
+}
+}
 }
