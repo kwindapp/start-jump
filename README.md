@@ -85,10 +85,6 @@ Optional: Use gyroscope/magnetometer to detect rotations or spins.
 
 <img width="833" alt="Screenshot 2025-04-12 at 19 13 45" src="https://github.com/user-attachments/assets/b3ce92f6-f451-4f28-bc47-51dda93d49d4" />
 
-
-
-
-
 example lilygo e paper kwind lorawan to show wind datas
 
 
@@ -128,8 +124,12 @@ ToF Sensors (e.g. VL53L1X):
 
 Short range (up to ~4m), but instant vertical distance to water.
 
-Useful if mounted on the board or waist looking down.
+Useful if mounted on the board or waist
+
+
 T-Echo WITH CUSTOM CASE ???? !!!!!!
+
+
 https://lilygo.cc/products/t-echo-lilygo?_pos=13&_sid=b0fec331c&_ss=r
 
 ![IMG_0545](https://github.com/user-attachments/assets/4ae474a5-c8a6-448d-b466-69d2ad91064e)
