@@ -93,7 +93,42 @@ example lilygo e paper kwind lorawan to show wind datas
 
 
 https://lilygo.cc/products/t5-e-paper-s3-pro?srsltid=AfmBOorc7LqXWoUC_o1wGtLzu9pwrRpQNAIeEYyUUlhsNAWFjZNvDk14
+1. BMP388 or BMP390 + BMX160 (IMU)
+What you get: Jump height, airtime, 3D orientation
 
+Why it’s great: Fast, lightweight, and super accurate
+
+Use case: Action sports, wearables
+
+🔹 2. BMX160 + BMP390 + GPS (like u-blox NEO-M9N)
+GPS adds:
+
+Horizontal speed
+
+Jump distance
+
+Position logging (spots, sessions)
+
+Optionally: sync with GoPro footage
+
+BMP390 is slightly more stable and accurate than BMP388.
+
+🧠 Fusion of IMU + GPS velocity + BMP altitude = extremely solid jump profiles.
+
+🔹 3. Add UWB (Ultra-Wideband) or Time-of-Flight (ToF)
+If you're looking for elite-level precision — like <10 cm vertical tracking and real-time feedback — consider:
+
+UWB (e.g. DWM1001):
+
+Can give precise 3D positioning in a defined area (you’d need base stations on the beach or boat).
+
+Works great in competitions or training environments.
+
+ToF Sensors (e.g. VL53L1X):
+
+Short range (up to ~4m), but instant vertical distance to water.
+
+Useful if mounted on the board or waist looking down.
 T-Echo WITH CUSTOM CASE ???? !!!!!!
 https://lilygo.cc/products/t-echo-lilygo?_pos=13&_sid=b0fec331c&_ss=r
 
