@@ -1,32 +1,3 @@
-
-- Test Device Lilygo T-Echo with ?? ,Gravity BMX160 + BMP388 10 DOF Sensor,MPU-9250 ,BNO055 (9-DOF Absolute Orientation Sensor),??
-- BMP388 + IMU (MPU6886 or BMX160) is arguably the best combo for kitesurf jump tracking. You get high-accuracy jump height, real-time airtime, and trick detection — all in a lightweight, wearable setup.
-- Detect Takeoff using IMU:
-
-Spike in upward Z-acceleration → takeoff timestamp.
-
-Start recording altitude with BMP388:
-
-Continue until Z-acceleration spike again (landing).
-
-Record peak altitude:
-
-BMP388 gives you height above takeoff point.
-
-Calculate Airtime:
-
-Difference between takeoff and landing timestamps.
-
-Optional: Use gyroscope/magnetometer to detect rotations or spins.
-
-- M5stack core 2
-
-![IMG_0560](https://github.com/user-attachments/assets/84173246-f6f6-4358-861c-2c521d11387d)
-
-<img width="833" alt="Screenshot 2025-04-12 at 19 13 45" src="https://github.com/user-attachments/assets/b3ce92f6-f451-4f28-bc47-51dda93d49d4" />
-
-
-
 Main Topic: Jump Recording with IMU on a Kiteboard Using LoRaWAN & E-Paper Display
 Objective:
 To record and display jump data (height, airtime, and impact acceleration) on an E-paper display attached to a kiteboard. The data, along with GPS coordinates, will also be sent via LoRaWAN for remote tracking and retrieval.
@@ -88,6 +59,35 @@ Impact acceleration (g) – The force experienced upon landing.
 Location (GPS coordinates) – The current position of the kiteboard.
 
 The display updates dynamically after each jump, providing live performance data while the user is on the water.
+- Test Device Lilygo T-Echo with ?? ,Gravity BMX160 + BMP388 10 DOF Sensor,MPU-9250 ,BNO055 (9-DOF Absolute Orientation Sensor),??
+- BMP388 + IMU (MPU6886 or BMX160) is arguably the best combo for kitesurf jump tracking. You get high-accuracy jump height, real-time airtime, and trick detection — all in a lightweight, wearable setup.
+- Detect Takeoff using IMU:
+
+Spike in upward Z-acceleration → takeoff timestamp.
+
+Start recording altitude with BMP388:
+
+Continue until Z-acceleration spike again (landing).
+
+Record peak altitude:
+
+BMP388 gives you height above takeoff point.
+
+Calculate Airtime:
+
+Difference between takeoff and landing timestamps.
+
+Optional: Use gyroscope/magnetometer to detect rotations or spins.
+
+- M5stack core 2
+
+![IMG_0560](https://github.com/user-attachments/assets/84173246-f6f6-4358-861c-2c521d11387d)
+
+<img width="833" alt="Screenshot 2025-04-12 at 19 13 45" src="https://github.com/user-attachments/assets/b3ce92f6-f451-4f28-bc47-51dda93d49d4" />
+
+
+
+
 
 example lilygo e paper kwind lorawan to show wind datas
 
