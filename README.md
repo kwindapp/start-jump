@@ -86,7 +86,20 @@ Optional: Use gyroscope/magnetometer to detect rotations or spins.
 <img width="833" alt="Screenshot 2025-04-12 at 19 13 45" src="https://github.com/user-attachments/assets/b3ce92f6-f451-4f28-bc47-51dda93d49d4" />
 
 example lilygo e paper kwind lorawan to show wind datas
-
+🧠 Sensor Fusion Strategies
+Data Source    Measures
+IMU (BMX160)    Acceleration, takeoff, landing, spin
+Barometer (BMP390)    Altitude change (relative jump height)
+GPS (u-blox)    Speed, position, jump length
+UWB / ToF    Precise height from ground/water
+Magnetometer    Trick detection (heading, orientation)
+🧰 Example Elite Setup
+Component    Example
+IMU    BMX160
+Barometer    BMP390
+GPS    u-blox NEO-M9N
+Microcontroller    LilyGO T-Echo (with GPS & LoRa)
+Comms    BLE / LoRa for real-time display or sync
 
 https://lilygo.cc/products/t5-e-paper-s3-pro?srsltid=AfmBOorc7LqXWoUC_o1wGtLzu9pwrRpQNAIeEYyUUlhsNAWFjZNvDk14
 1. BMP388 or BMP390 + BMX160 (IMU)
