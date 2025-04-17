@@ -1,0 +1,98 @@
+🪂 Sensor Fusion & Filtering for Kitesurf Jump Detection (ESP32-Based System)
+In the dynamic environment of kitesurfing — with constant wind, waves, and motion — reliable jump detection requires robust sensor fusion and smart filtering. No single sensor can do the job alone. Instead, we combine multiple sensors, each compensating for the limitations of the others, and apply a layered system of filters and logic to extract meaningful jump data.
+
+🧠 Sensor Roles and Complementary Strengths
+IMU (e.g. BMX160) provides fast, responsive data on acceleration and rotation, ideal for detecting takeoff, landing, and spin.
+
+Barometer (e.g. BMP390) offers accurate relative altitude changes, critical for measuring jump height.
+
+GPS (e.g. NEO-M9N) delivers speed, position, and jump length, useful for distance and validation.
+
+Magnetometer supports trick detection by tracking orientation and spin.
+
+ToF sensors are generally not useful for jumps beyond a few meters and are not suitable for this application.
+
+Each sensor contributes a different perspective; together, they build a full picture of a kitesurf jump.
+
+⚙️ Fusion Strategy Overview
+IMU detects takeoff via an upward acceleration spike (e.g. >1.5g) that persists longer than short wave hits.
+
+Barometer confirms ascent, with a relative altitude increase beyond a minimum threshold (e.g. >0.5m).
+
+GPS provides motion context, confirming the rider is moving (e.g. >5 km/h) and adding horizontal distance to the jump profile.
+
+Magnetometer and gyro track orientation changes to recognize tricks such as rolls or spins.
+
+A state machine governs the detection logic, ensuring that events like rising, airborne, falling, and landing are properly identified in sequence.
+
+🧰 Key Filters for Reliability in Rough Conditions
+High-pass filter (on IMU acceleration): Removes slow oscillations caused by waves; isolates sharp, short bursts of motion typical of real jumps.
+
+Low-pass filter (on barometric data): Smooths out noise from wind gusts and pressure fluctuations.
+
+Rate-of-change checks: Ensures barometric height is increasing or decreasing steadily rather than bouncing randomly.
+
+Threshold gates: Prevent false positives by only recognizing jumps that exceed defined height, airtime, and acceleration thresholds.
+
+Wave compensation filter (optional): Identifies and cancels out rhythmic wave motion if consistent enough to model.
+
+🔁 Jump Lifecycle State Machine
+To minimize noise and false detections, jumps are tracked as a sequence of clear states:
+
+Idle: The system monitors baseline values for altitude and acceleration.
+
+Rising: Triggered by an upward acceleration spike and rising barometric trend.
+
+Airborne: Maintained as long as baro shows increased altitude and IMU data indicates low vertical force (free-fall).
+
+Falling: Detected when altitude drops and downward acceleration occurs.
+
+Landing: Confirmed via a strong downward acceleration spike and return to barometric baseline.
+
+This model ensures a jump is only recorded when the entire pattern — from takeoff to landing — is complete and consistent.
+
+🔎 Jump Validation Logic
+To qualify as a real jump, an event must meet multiple conditions:
+
+Upward acceleration above threshold (e.g. >1.5g)
+
+Minimum altitude gain (e.g. >0.5 m)
+
+Airtime > 300 ms
+
+Time between jumps > 2 sec (to avoid double-counting)
+
+Optional: minimum GPS speed (e.g. >5 km/h) to filter static bounces
+
+This multi-layer validation filters out wave bumps, board slaps, and unintentional hops.
+
+🧪 Sensor Drift Handling
+Both barometer and IMU can drift over time. Fusion helps mitigate this:
+
+Reset baro baseline during idle periods
+
+Use moving averages and sliding windows for stabilization
+
+Cross-reference GPS altitude occasionally to sanity-check drift (not as primary source)
+
+💡 Optional Enhancements
+Kalman or complementary filters for smooth altitude estimation
+
+Trick detection via orientation tracking (gyro + magnetometer)
+
+Post-session analysis with raw data logs for threshold tuning
+
+Real-time output via BLE or LoRa for displaying stats on a wrist screen or phone
+
+✅ Summary
+Accurate kitesurf jump detection in choppy water demands more than raw sensor readings. It requires:
+
+Smart fusion of barometer, IMU, and GPS data
+
+Carefully tuned filters to reject wave-induced noise
+
+A logical jump state machine to track valid flight sequences
+
+Multi-criteria validation to confirm genuine airborne movement
+
+Together, these elements form a reliable, real-world system that distinguishes true jumps from the chaos of the ocean.
